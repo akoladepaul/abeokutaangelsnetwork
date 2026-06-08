@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 
 const sectors = ["AgriTech", "EdTech", "FinTech", "Logistics", "HealthTech", "Creative Industries", "Other"];
 const stages = ["Pre-seed", "Seed", "Both"];
 
 export default function InvestorApplyPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [stage, setStage] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   function toggleSector(s: string) {
     setSelectedSectors((prev) =>
@@ -18,12 +19,24 @@ export default function InvestorApplyPage() {
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("loading");
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      const res = await fetch("/api/apply/investor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, sectors: selectedSectors.join(", "), stage }),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
   }
 
-  if (submitted) {
+  if (status === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream px-4">
         <div className="text-center max-w-md">
@@ -53,7 +66,7 @@ export default function InvestorApplyPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-sm border border-cream-dark p-8 flex flex-col gap-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-sm border border-cream-dark p-8 flex flex-col gap-6">
           {/* Personal */}
           <div>
             <h2 className="text-sm font-semibold text-charcoal uppercase tracking-wider mb-4 pb-2 border-b border-cream-dark">
@@ -181,7 +194,11 @@ export default function InvestorApplyPage() {
             </div>
           </div>
 
-          <Button type="submit" variant="primary" size="lg" className="mt-2 w-full justify-center">
+          {status === "error" && (
+            <p className="text-red-600 text-sm text-center">Something went wrong. Please try again or email us directly.</p>
+          )}
+          <Button type="submit" variant="primary" size="lg" disabled={status === "loading"} className="mt-2 w-full justify-center gap-2">
+            {status === "loading" && <Loader2 size={16} className="animate-spin" />}
             Submit Application
           </Button>
           <p className="text-xs text-muted text-center">

@@ -2,22 +2,34 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 
 const sectors = ["AgriTech", "EdTech", "FinTech", "Logistics", "HealthTech", "Creative Industries", "Other"];
 const stages = ["Idea / Pre-product", "MVP / Beta", "Revenue-generating", "Scaling"];
 
 export default function StartupApplyPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [sector, setSector] = useState("");
   const [stage, setStage] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("loading");
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      const res = await fetch("/api/apply/startup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, sector, stage }),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
   }
 
-  if (submitted) {
+  if (status === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream px-4">
         <div className="text-center max-w-md">
@@ -207,7 +219,11 @@ export default function StartupApplyPage() {
             </div>
           </div>
 
-          <Button type="submit" variant="primary" size="lg" className="mt-2 w-full justify-center">
+          {status === "error" && (
+            <p className="text-red-600 text-sm text-center">Something went wrong. Please try again or email us.</p>
+          )}
+          <Button type="submit" variant="primary" size="lg" disabled={status === "loading"} className="mt-2 w-full justify-center gap-2">
+            {status === "loading" && <Loader2 size={16} className="animate-spin" />}
             Submit Pitch
           </Button>
           <p className="text-xs text-muted text-center">

@@ -1,12 +1,7 @@
-import { Calendar, MapPin } from "lucide-react";
+import { events } from "@/data/content";
+import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
-const events = [
-  { title: "AAN Founding Pitch Day", date: "Q3 2025", location: "Abeokuta, Ogun State", type: "Pitch Day", description: "Our inaugural pitch day — 5 selected startups present to founding angel members." },
-  { title: "Angel Investor Breakfast", date: "August 2025", location: "Abeokuta", type: "Networking", description: "Closed-door breakfast for founding angel members. Investment thesis and governance discussion." },
-  { title: "Founder Meetup — Ogun State Builders", date: "July 2025", location: "Abeokuta", type: "Community", description: "Open meetup for founders building in Ogun State. No pitching. Just connection." },
-];
 
 export default function EventsPage() {
   return (
@@ -23,27 +18,38 @@ export default function EventsPage() {
 
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5">
             {events.map((ev) => (
-              <div key={ev.title} className="flex gap-6 p-6 border border-cream-dark rounded-sm hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 bg-gold/10 rounded-sm flex items-center justify-center flex-shrink-0">
+              <Link
+                key={ev.slug}
+                href={`/events/${ev.slug}`}
+                className="group flex gap-5 p-6 border border-cream-dark rounded-sm hover:shadow-md hover:border-gold/30 transition-all"
+              >
+                <div className="w-14 h-14 bg-gold/10 group-hover:bg-gold/20 rounded-sm flex items-center justify-center flex-shrink-0 transition-colors">
                   <Calendar size={22} className="text-gold" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div>
                       <span className="text-xs font-semibold text-gold uppercase tracking-wider">{ev.type}</span>
-                      <h3 className="text-lg font-bold text-charcoal mt-0.5">{ev.title}</h3>
+                      <h3 className="text-lg font-bold text-charcoal mt-0.5 group-hover:text-forest transition-colors">
+                        {ev.title}
+                      </h3>
                     </div>
-                    <span className="text-sm font-medium text-forest bg-cream px-3 py-1 rounded-sm border border-cream-dark flex-shrink-0">{ev.date}</span>
+                    <span className="text-sm font-medium text-forest bg-cream px-3 py-1 rounded-sm border border-cream-dark flex-shrink-0">
+                      {ev.date}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1 text-muted text-sm mt-1 mb-3">
+                  <div className="flex items-center gap-1 text-muted text-sm mt-1 mb-2">
                     <MapPin size={12} />
                     <span>{ev.location}</span>
                   </div>
                   <p className="text-muted text-sm leading-relaxed">{ev.description}</p>
+                  <p className="text-xs text-forest mt-3 flex items-center gap-1 group-hover:gap-2 transition-all">
+                    View details <ArrowRight size={11} />
+                  </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 
