@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  /* AAN Brand Colors */
+  --color-forest: #1a4731;
+  --color-forest-dark: #0f2e1f;
+  --color-forest-light: #2d6b4a;
+  --color-gold: #c9a84c;
+  --color-gold-light: #e0c47a;
+  --color-gold-dark: #a07c2e;
+  --color-cream: #faf7f0;
+  --color-cream-dark: #f0ead8;
+  --color-charcoal: #1c1c1e;
+  --color-muted: #6b7280;
+
+  --background: #ffffff;
+  --foreground: #1c1c1e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  /* Brand palette exposed as Tailwind utilities */
+  --color-forest: #1a4731;
+  --color-forest-dark: #0f2e1f;
+  --color-forest-light: #2d6b4a;
+  --color-gold: #c9a84c;
+  --color-gold-light: #e0c47a;
+  --color-gold-dark: #a07c2e;
+  --color-cream: #faf7f0;
+  --color-cream-dark: #f0ead8;
+  --color-charcoal: #1c1c1e;
+  --color-muted: #6b7280;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
