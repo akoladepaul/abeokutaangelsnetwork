@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
+import { Lock, MessageSquare } from "lucide-react";
+import { AcceptMatchButton } from "@/components/portal/accept-match-button";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function StartupInvestorsPage() {
   const supabase = await createClient();
@@ -39,7 +42,7 @@ export default async function StartupInvestorsPage() {
         <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-1">Investors</p>
         <h1 className="text-3xl font-bold text-charcoal">Matched Investors</h1>
         <p className="text-muted text-sm mt-1">
-          Investors matched to your startup. Names are revealed once you&apos;re connected.
+          Investors matched to your startup. Accept interest to unlock messaging.
         </p>
       </div>
 
@@ -56,6 +59,7 @@ export default async function StartupInvestorsPage() {
               sectors: string[]; stages: string[]; ticket_min: number; ticket_max: number;
             } | null;
             const connected = m.status === "connected";
+            const interested = m.status === "interested";
             return (
               <div key={m.id} className="bg-white border border-cream-dark rounded-sm p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -91,26 +95,36 @@ export default async function StartupInvestorsPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="text-xs text-muted">
                     Ticket: ₦{((investor?.ticket_min ?? 0) / 1_000_000).toFixed(0)}M – ₦{((investor?.ticket_max ?? 0) / 1_000_000).toFixed(0)}M
                   </p>
-                  {m.status === "interested" && (
-                    <span className="text-xs bg-gold/20 text-gold px-2 py-0.5 rounded-full font-medium">Interested</span>
-                  )}
-                  {m.status === "connected" && (
-                    <span className="text-xs bg-forest/10 text-forest px-2 py-0.5 rounded-full font-medium">Connected</span>
-                  )}
                   {m.status === "passed" && (
                     <span className="text-xs bg-cream text-muted px-2 py-0.5 rounded-full">Passed</span>
                   )}
                 </div>
 
-                {!connected && (
-                  <p className="text-xs text-muted mt-3 flex items-center gap-1.5">
-                    <Lock size={11} /> Investor details revealed when connected
-                  </p>
-                )}
+                {/* Actions */}
+                <div className="mt-4 pt-3 border-t border-cream-dark">
+                  {connected ? (
+                    <Link href={`/portal/startup/messages?match=${m.id}`}>
+                      <Button variant="primary" size="sm" className="gap-1.5">
+                        <MessageSquare size={13} /> Open Chat
+                      </Button>
+                    </Link>
+                  ) : interested ? (
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-xs bg-gold/10 text-gold border border-gold/20 px-3 py-1.5 rounded-sm font-medium">
+                        This investor is interested in you
+                      </span>
+                      <AcceptMatchButton matchId={m.id} onAccepted={() => {}} />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted flex items-center gap-1.5">
+                      <Lock size={11} /> Waiting for investor to express interest
+                    </p>
+                  )}
+                </div>
               </div>
             );
           })}

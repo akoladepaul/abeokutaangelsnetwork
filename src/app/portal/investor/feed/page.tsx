@@ -23,7 +23,7 @@ export default async function InvestorFeedPage() {
     .eq("id", user!.id)
     .single();
 
-  // Get matched startups sorted by score
+  // Get matched startups sorted by score, with saved status
   const { data: matches } = investorProfile
     ? await supabase
         .from("matches")
@@ -35,6 +35,15 @@ export default async function InvestorFeedPage() {
         .neq("status", "passed")
         .order("score", { ascending: false })
     : { data: null };
+
+  // Get saved startup IDs for this investor
+  const { data: savedRows } = investorProfile
+    ? await supabase
+        .from("saved_startups")
+        .select("startup_id")
+        .eq("investor_id", investorProfile.id)
+    : { data: null };
+  const savedIds = new Set((savedRows ?? []).map((s) => s.startup_id));
 
   // Stats
   const totalMatches = matches?.length ?? 0;
@@ -125,13 +134,17 @@ export default async function InvestorFeedPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {matches.map((match) => (
-            <DealCard
-              key={match.id}
-              match={match}
-              startup={match.startup_profile}
-            />
-          ))}
+          {matches.map((match) => {
+            const sp = match.startup_profile as { id?: string } | null;
+            return (
+              <DealCard
+                key={match.id}
+                match={match}
+                startup={match.startup_profile as Parameters<typeof DealCard>[0]["startup"]}
+                initialSaved={savedIds.has(sp?.id ?? "")}
+              />
+            );
+          })}
         </div>
       )}
     </div>
