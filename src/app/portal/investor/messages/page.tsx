@@ -21,13 +21,38 @@ export default async function InvestorMessagesPage({
         .eq("status", "connected")
     : { data: null };
 
+  const matchIds = (matches ?? []).map((m) => m.id);
+
+  // Fetch all messages for these conversations to compute last message + unread
+  const { data: recentMessages } = matchIds.length > 0
+    ? await supabase
+        .from("messages")
+        .select("match_id, sender_id, body, read, created_at")
+        .in("match_id", matchIds)
+        .order("created_at", { ascending: false })
+    : { data: null };
+
+  const lastMsgMap = new Map<string, { body: string; at: string }>();
+  const unreadMap = new Map<string, number>();
+  for (const msg of (recentMessages ?? [])) {
+    if (!lastMsgMap.has(msg.match_id)) {
+      lastMsgMap.set(msg.match_id, { body: msg.body, at: msg.created_at });
+    }
+    if (!msg.read && msg.sender_id !== user!.id) {
+      unreadMap.set(msg.match_id, (unreadMap.get(msg.match_id) ?? 0) + 1);
+    }
+  }
+
   const conversations = (matches ?? []).map((m) => {
     const sp = m.startup_profile as unknown as { company_name: string | null } | null;
+    const last = lastMsgMap.get(m.id);
     return {
       matchId: m.id,
       otherPartyName: sp?.company_name ?? "Startup",
       otherPartyInitial: (sp?.company_name ?? "S")[0],
-      unread: 0,
+      lastMessage: last?.body,
+      lastMessageAt: last?.at,
+      unread: unreadMap.get(m.id) ?? 0,
     };
   });
 

@@ -155,6 +155,17 @@ create policy "Match participants can insert messages" on public.messages for in
     where ip.user_id = auth.uid() or sp.user_id = auth.uid()
   )
 );
+create policy "Recipients can mark messages as read" on public.messages for update
+  using (
+    sender_id <> auth.uid() and
+    match_id in (
+      select m.id from public.matches m
+      join public.investor_profiles ip on ip.id = m.investor_id
+      join public.startup_profiles sp on sp.id = m.startup_id
+      where ip.user_id = auth.uid() or sp.user_id = auth.uid()
+    )
+  )
+  with check (read = true);
 
 -- ============================================================
 -- MATCHING FUNCTION
